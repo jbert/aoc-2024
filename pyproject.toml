@@ -1,0 +1,7 @@
+[project]
+name = "aoc-py"
+version = "0.1.0"
+description = "Advent of Code in python"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
