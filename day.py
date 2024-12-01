@@ -1,5 +1,6 @@
 import os
-from typing import Any, TypeVar
+from typing import TypeVar
+from functools import reduce
 
 
 class Day:
@@ -109,20 +110,9 @@ def transpose(M: list[list[int]]) -> list[list[int]]:
 T = TypeVar("T")
 
 
-def repeat_counts(l: list[T]) -> dict[T, int]:
-    last_c = None
-    last_count = 0
-    counts = {}
-    for c in l:
-        if last_c is not None:
-            if c == last_c:
-                last_count += 1
-            else:
-                counts[last_c] = last_count
-                last_c = c
-                last_count = 1
-        else:
-            last_c = c
-            last_count = 1
-    counts[last_c] = last_count
-    return counts
+def freq_count(l: list[T]) -> dict[T, int]:
+    def step(acc, c):
+        v = acc.get(c, 0)
+        acc[c] = v+1
+        return acc
+    return reduce(step, l, {})

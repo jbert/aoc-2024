@@ -1,4 +1,4 @@
-from day import Day, str_to_nums, transpose, repeat_counts
+from day import Day, str_to_nums, transpose, freq_count
 
 
 if __name__ == "__main__":
@@ -11,6 +11,6 @@ if __name__ == "__main__":
     deltas = [abs(cols[0][i]-cols[1][i]) for i in range(len(cols[0]))]
     print(sum(deltas))
 
-    counts = repeat_counts(cols[1])
+    counts = freq_count(cols[1])
 
     print(sum([l * counts.get(l, 0) for l in cols[0]]))
