@@ -1,4 +1,4 @@
-from day import Day, str_to_nums, transpose
+from day import Day, str_to_nums, transpose, repeat_counts
 
 
 if __name__ == "__main__":
@@ -11,20 +11,6 @@ if __name__ == "__main__":
     deltas = [abs(cols[0][i]-cols[1][i]) for i in range(len(cols[0]))]
     print(sum(deltas))
 
-    counts = {}
-    last_c = None
-    last_count = 0
-    for c in cols[1]:
-        if last_c is not None:
-            if c == last_c:
-                last_count += 1
-            else:
-                counts[last_c] = last_count
-                last_c = c
-                last_count = 1
-        else:
-            last_c = c
-            last_count = 1
-    counts[last_c] = last_count
+    counts = repeat_counts(cols[1])
 
     print(sum([l * counts.get(l, 0) for l in cols[0]]))
