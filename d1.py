@@ -8,10 +8,23 @@ if __name__ == "__main__":
     cols = transpose(rows)
     cols[0].sort()
     cols[1].sort()
-    # print(cols)
-    # print(cols[0])
     deltas = [abs(cols[0][i]-cols[1][i]) for i in range(len(cols[0]))]
-    # print(deltas)
-
-    # print(deltas)
     print(sum(deltas))
+
+    counts = {}
+    last_c = None
+    last_count = 0
+    for c in cols[1]:
+        if last_c is not None:
+            if c == last_c:
+                last_count += 1
+            else:
+                counts[last_c] = last_count
+                last_c = c
+                last_count = 1
+        else:
+            last_c = c
+            last_count = 1
+    counts[last_c] = last_count
+
+    print(sum([l * counts.get(l, 0) for l in cols[0]]))
