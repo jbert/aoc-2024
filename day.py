@@ -1,4 +1,5 @@
 import os
+from typing import Any, TypeVar
 
 
 class Day:
@@ -105,7 +106,10 @@ def transpose(M: list[list[int]]) -> list[list[int]]:
     return [[M[j][i] for j in range(len(M))] for i in range(len(M[0]))]
 
 
-def repeat_counts(l):
+T = TypeVar("T")
+
+
+def repeat_counts(l: list[T]) -> dict[T, int]:
     last_c = None
     last_count = 0
     counts = {}
