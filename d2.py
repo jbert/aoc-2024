@@ -1,4 +1,5 @@
 from day import Day, str_to_nums
+from typing import TypeVar
 
 
 def is_safe_p1(l: list[int]):
@@ -7,6 +8,9 @@ def is_safe_p1(l: list[int]):
     monotonic = all(map(lambda d: d > 0, deltas)) or all(
         map(lambda d: d < 0, deltas))
     return monotonic and good_size
+
+
+T = TypeVar("T")
 
 
 def sublists(l: list[T]):
