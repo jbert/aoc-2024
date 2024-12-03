@@ -116,3 +116,7 @@ def freq_count(l: list[T]) -> dict[T, int]:
         acc[c] = v+1
         return acc
     return reduce(step, l, {})
+
+
+def flatten(l: list[list[T]]) -> list[T]:
+    return [x for xs in l for x in xs]

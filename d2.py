@@ -9,7 +9,7 @@ def is_safe_p1(l: list[int]):
     return monotonic and good_size
 
 
-def sublists(l):
+def sublists(l: list[T]):
     for i in range(len(l)):
         yield l[:i] + l[i+1:]
 
