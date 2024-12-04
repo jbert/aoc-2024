@@ -31,8 +31,10 @@ class pt(NamedTuple):
 #        print(f'within {self} - {mb} - ret {ret}')
         return ret
 
-    def char_at(self, m: matrix) -> str:
+    def char_at(self, m: matrix, sentinel=None) -> str:
         if not self.within(m):
+            if sentinel is not None:
+                return sentinel
             raise RuntimeError(f'pt {self} not within matrix')
         return m[self.y][self.x]
 
@@ -52,16 +54,15 @@ def matrix_bounds(m: matrix) -> pt:
 
 Zero = pt(0, 0)
 
-NESW = [
-    pt(0, 1),
-    pt(1, 0),
-    pt(0, -1),
-    pt(-1, 0),
-]
 
-ALL_DIRS = NESW + [
-    pt(1, 1),
-    pt(-1, 1),
-    pt(1, -1),
-    pt(-1, -1),
-]
+N = pt(0, -1)
+E = pt(1, 0)
+S = pt(0, +1)
+W = pt(-1, 0)
+NESW = [N, E, S, W]
+NE = N.add(E)
+SE = S.add(E)
+NW = N.add(W)
+SW = S.add(W)
+
+ALL_DIRS = NESW + [NE, SE, SW, NW]
