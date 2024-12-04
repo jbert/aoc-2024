@@ -1,32 +1,26 @@
-from copyreg import add_extension
-from day import Day, flatten
-from pt import pt
+from day import Day
+from pt import pt, ALL_DIRS
 
 
-def p1(m: list[str]) -> int:
+def xmas_count(p: pt, m: list[str]) -> int:
+    dirs = [dir for dir in ALL_DIRS if p.add(dir.scale(3)).within(m)]
 
-    locations: dict[str, set[pt]] = {}
-    # Could do this in one pass, what is best way?
-    for char in 'XMAS':
-        locations[char] = set([pt(i, j) for j, l in enumerate(lines)
-                               for i, c in enumerate(l) if c == char])
+    def good_dir(p, dir) -> bool:
+        for i, c in enumerate('XMAS'):
+            found = p.add(dir.scale(i)).char_at(m)
+            if found != c:
+                return False
+        return True
 
-    paths: list[list[pt]] = list([[l] for l in locations['X']])
-    next_paths = list()
-    for char in 'MAS':
-        #        print(f'char {char} num_paths {len(paths)}')
-        for i, path in enumerate(paths):
-            #    print(f'i {i} num_paths {len(paths)} lp {len(path)} path {path}')
-            for p in locations[char]:
-                #    print(f'p {p}')
-                if path[-1].is_adjacent(p):
-                    new_path = path[:]
-                    new_path.append(p)
-                    next_paths.append(new_path)
-        paths = next_paths[:]
+    return len([dir for dir in dirs if good_dir(p, dir)])
 
-    print(len(paths))
-    return 0
+
+def p1(lines: list[str]) -> int:
+    xs = [pt(i, j) for j, l in enumerate(lines)
+          for i, c in enumerate(l) if c == 'X']
+    xmas_counts = [xmas_count(x, lines) for x in xs]
+#    print(xmas_counts)
+    return sum(xmas_counts)
 
 
 if __name__ == "__main__":
