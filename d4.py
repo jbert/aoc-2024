@@ -1,27 +1,25 @@
-from day import Day
-from pt import pt, ALL_DIRS, matrix_bounds
+from copyreg import add_extension
+from day import Day, flatten
+from pt import pt
 
 
-def is_xmas(p: pt, m: list[str]) -> bool:
-    dirs = [dir for dir in ALL_DIRS if p.add(dir.scale(3)).within(m)]
-#    print(f'p {p} dirs {dirs} m_bounds {matrix_bounds(m)}')
+def p1(m: list[str]) -> int:
+    letters = {}
 
-    def is_dir(p, dir) -> bool:
-        for i, c in enumerate('XMAS'):
-            if p.add(dir.scale(i)).char_at(m) != c:
-                return False
-        return True
+    def adjacent_set(ps: set[pt]) -> set[pt]:
+        return set(flatten([p.adjacent_pts() for p in ps if p.within(m)]))
 
-    return len([dir for dir in dirs if is_dir(p, dir)]) > 0
+    for char in 'XMAS':
+        letters[char] = set([pt(i, j) for j, l in enumerate(lines)
+                             for i, c in enumerate(l) if c == char])
 
+    goodXs = letters['X'].intersection(adjacent_set(letters['M']))
+    goodMs = letters['M'].intersection(adjacent_set(goodXs))
+    goodAs = letters['A'].intersection(adjacent_set(goodMs))
+    goodSs = letters['S'].intersection(adjacent_set(goodAs))
 
-def p1(lines: list[str]) -> int:
-    xs = [pt(i, j) for j, l in enumerate(lines)
-          for i, c in enumerate(l) if c == 'X']
-    # print(is_xmas(xs[0], lines))
-    xmass = [x for x in xs if is_xmas(x, lines)]
-    print(xmass)
-    return len(xmass)
+    print(len(goodSs))
+    return 0
 
 
 if __name__ == "__main__":
