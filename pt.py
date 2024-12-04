@@ -1,5 +1,7 @@
 from typing import NamedTuple, Callable
 
+matrix = list[str]
+
 
 class pt(NamedTuple):
     x: int
@@ -23,11 +25,29 @@ class pt(NamedTuple):
     def is_adjacent(self, q) -> bool:
         return q in self.adjacent_pts()
 
+    def within(self, m: matrix) -> bool:
+        mb = matrix_bounds(m)
+        ret = self.x >= 0 and self.x < mb.x and self.y >= 0 and self.y < mb.y
+#        print(f'within {self} - {mb} - ret {ret}')
+        return ret
+
+    def char_at(self, m: matrix) -> str:
+        if not self.within(m):
+            raise RuntimeError(f'pt {self} not within matrix')
+        return m[self.y][self.x]
+
+    def scale(self, n: int):
+        return pt(self.x * n, self.y * n)
+
 
 def mk_is_adjacent(p: pt) -> Callable[[pt], bool]:
     def f(q: pt) -> bool:
         return q.is_adjacent(p)
     return f
+
+
+def matrix_bounds(m: matrix) -> pt:
+    return pt(len(m[0]),  len(m))
 
 
 Zero = pt(0, 0)
