@@ -4,21 +4,28 @@ from pt import pt
 
 
 def p1(m: list[str]) -> int:
-    letters = {}
 
-    def adjacent_set(ps: set[pt]) -> set[pt]:
-        return set(flatten([p.adjacent_pts() for p in ps if p.within(m)]))
-
+    locations: dict[str, set[pt]] = {}
+    # Could do this in one pass, what is best way?
     for char in 'XMAS':
-        letters[char] = set([pt(i, j) for j, l in enumerate(lines)
-                             for i, c in enumerate(l) if c == char])
+        locations[char] = set([pt(i, j) for j, l in enumerate(lines)
+                               for i, c in enumerate(l) if c == char])
 
-    goodXs = letters['X'].intersection(adjacent_set(letters['M']))
-    goodMs = letters['M'].intersection(adjacent_set(goodXs))
-    goodAs = letters['A'].intersection(adjacent_set(goodMs))
-    goodSs = letters['S'].intersection(adjacent_set(goodAs))
+    paths: list[list[pt]] = list([[l] for l in locations['X']])
+    next_paths = list()
+    for char in 'MAS':
+        #        print(f'char {char} num_paths {len(paths)}')
+        for i, path in enumerate(paths):
+            #    print(f'i {i} num_paths {len(paths)} lp {len(path)} path {path}')
+            for p in locations[char]:
+                #    print(f'p {p}')
+                if path[-1].is_adjacent(p):
+                    new_path = path[:]
+                    new_path.append(p)
+                    next_paths.append(new_path)
+        paths = next_paths[:]
 
-    print(len(goodSs))
+    print(len(paths))
     return 0
 
 
