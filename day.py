@@ -20,9 +20,9 @@ class Day:
 
 
 # Space separated integers to list
-def str_to_nums(s: str) -> list[int]:
+def str_to_nums(s: str, sep=' ') -> list[int]:
     s = s.strip()
-    bits = s.split(' ')
+    bits = s.split(sep)
     return [int(bit) for bit in bits if len(bit) > 0]
 
 
