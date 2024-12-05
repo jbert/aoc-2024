@@ -1,4 +1,5 @@
 from day import Day, str_to_nums
+from functools import cmp_to_key
 
 
 def is_valid(report: list[int], succs) -> bool:
@@ -12,7 +13,30 @@ def is_valid(report: list[int], succs) -> bool:
     return True
 
 
+def p2(lines: list[str]) -> int:
+    succs, reports = parse(lines)
+#    print("REP", reports)
+    invalid_reports = [r for r in reports if not is_valid(r, succs)]
+#    print("INV", invalid_reports)
+
+    def compare(a, b) -> int:
+        if a == b:
+            return 0
+        if b in succs[a]:
+            return -1
+        return +1
+
+    fixed_reports = [sorted(r, key=cmp_to_key(compare))
+                     for r in invalid_reports]
+    return sum([r[int(len(r)/2)] for r in fixed_reports])
+
+
 def p1(lines: list[str]) -> int:
+    succs, reports = parse(lines)
+    return (sum([r[int(len(r)/2)] for r in reports if is_valid(r, succs)]))
+
+
+def parse(lines: list[str]):
     pairs = []
     reports = []
     for i, l in enumerate(lines):
@@ -33,12 +57,13 @@ def p1(lines: list[str]) -> int:
         s = succs.get(p[1], set())
         succs[p[1]] = s
 
-#    print("succes", succs)
-#    print([r for r in reports if is_valid(r, succs)])
-    return (sum([r[int(len(r)/2)] for r in reports if is_valid(r, succs)]))
+    #    print("succes", succs)
+    #    print([r for r in reports if is_valid(r, succs)])
+    return succs, reports
 
 
 if __name__ == "__main__":
     d = Day(5)
     lines = d.read_lines()
     print(p1(lines))
+    print(p2(lines))
