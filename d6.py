@@ -19,22 +19,20 @@ def parse(lines: list[str]) -> tuple[pt, set[pt]]:
 
 
 def p2(lines: list[str]) -> int:
-    print('p2')
     guard, obs = parse(lines)
+    visited, steps = simulate(guard, obs)
+
     # p1 took 5344 steps, but we may get longer paths
     max_steps = 130 * 130   # 16900
     loopers = set()
-    for j, line in enumerate(lines):
-        print(f'j {j}')
-        for i, c in enumerate(line):
-            o = pt(i, j)
-            if o in obs or o == guard:
-                continue
-            oset = obs.copy()
-            oset.add(o)
-            visited, steps = simulate(guard, oset, max_steps)
-            if steps == max_steps:
-                loopers.add(o)
+    for o in visited:
+        if o in obs or o == guard:
+            continue
+        oset = obs.copy()
+        oset.add(o)
+        _, steps = simulate(guard, oset, max_steps)
+        if steps == max_steps:
+            loopers.add(o)
 
     return len(loopers)
 
