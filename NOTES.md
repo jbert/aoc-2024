@@ -1,3 +1,11 @@
+# Python Notes
+
+# Day 7
+
+- you can have recursive generators, but they can be a little tricky.
+  in particular, you probably want more imperative code since list
+  comprehensions are in tension with them a little
+
 # Day 6
 
 - you can ignore parts of a tuple in an assignment with underscore
