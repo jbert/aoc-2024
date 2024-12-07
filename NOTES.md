@@ -1,3 +1,11 @@
+# Day 6
+
+- you can ignore parts of a tuple in an assignment with underscore
+
+- modulus operator is '%' as you would expect
+
+- pyrite type checking can use 'is None' checks to aid type inference
+
 # Day 5
 
 - python 3 sort functions take a 'key function' which generates a sort key for
