@@ -1,5 +1,5 @@
 import os
-from typing import TypeVar
+from typing import TypeVar, Callable
 from functools import reduce
 
 
@@ -120,3 +120,14 @@ def freq_count(l: list[T]) -> dict[T, int]:
 
 def flatten(l: list[list[T]]) -> list[T]:
     return [x for xs in l for x in xs]
+
+
+def partition(pred: Callable[[T], bool], l: list[T]) -> tuple[list[T], list[T]]:
+    ts = []
+    fs = []
+    for x in l:
+        if pred(x):
+            ts.append(x)
+        else:
+            fs.append(x)
+    return ts, fs
