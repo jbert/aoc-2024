@@ -1,4 +1,4 @@
-from typing import NamedTuple, Callable
+from typing import Callable, NamedTuple
 
 matrix = list[str]
 
@@ -18,6 +18,10 @@ class pt(NamedTuple):
 
     def iszero(self) -> bool:
         return self == Zero
+
+    # How to use a default value defined later in the file? :-(
+    def adjacent_pts_nesw(self):
+        return [p.add(self) for p in NESW]
 
     def adjacent_pts(self):
         return [p.add(self) for p in ALL_DIRS]
