@@ -11,7 +11,7 @@ def parse(lines: list[str]) -> set[pt]:
     return starts
 
 
-def trailhead_score(h: pt) -> int:
+def trailhead_score_p1(h: pt) -> int:
     # print(h)
     pool = set([h])
     for level in range(0, 9):
@@ -36,13 +36,40 @@ def trailhead_score(h: pt) -> int:
     return len(pool)
 
 
+def trailhead_score_p2(h: pt) -> int:
+    # print(h)
+    paths = list([[h]])
+    for level in range(0, 9):
+        # we have 'level', look for level+1
+        want = str(level+1)
+        next_paths = []
+#        print(paths)
+        for path in paths:
+            poss = path[-1].adjacent_pts_nesw()
+            for q in poss:
+                if q.within(lines):
+                    if q.char_at(lines) == want:
+                        next_path = path[:]
+                        next_path.append(q)
+                        next_paths.append(next_path)
+        paths = next_paths.copy()
+    return len(paths)
+
+
+def p2(lines: list[str]) -> int:
+    poss_heads = parse(lines)
+
+    return sum([trailhead_score_p2(h) for h in poss_heads])
+
+
 def p1(lines: list[str]) -> int:
     poss_heads = parse(lines)
 
-    return sum([trailhead_score(h) for h in poss_heads])
+    return sum([trailhead_score_p1(h) for h in poss_heads])
 
 
 if __name__ == "__main__":
     d = Day(10)
     lines = d.read_lines()
     print(p1(lines))
+    print(p2(lines))
