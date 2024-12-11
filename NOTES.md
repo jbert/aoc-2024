@@ -1,5 +1,13 @@
 # Python Notes
 
+# Dqy 11
+
+- functools has some memoisation tools
+    - didn't use them though...
+
+- deep recursion in python isn't a good idea
+    - also no tail call optimisation
+
 # Day 7
 
 - you can have recursive generators, but they can be a little tricky.
