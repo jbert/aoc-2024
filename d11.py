@@ -21,16 +21,22 @@ def p1(lines: list[str]) -> int:
     return len(stones)
 
 
+cache:dict[tuple[int,int],int] = {}
 def stone_count_after(stone: int, num_ticks: int) -> int:
+    v = cache.get((stone, num_ticks), None)
+    if v is not None:
+        return v
     if num_ticks == 0:
         return 1
     stones = stone_blink(stone)
-    return sum([stone_count_after(stone, num_ticks-1) for stone in stones])
+    v = sum([stone_count_after(stone, num_ticks-1) for stone in stones])
+    cache[(stone, num_ticks)] = v
+    return v
 
 
 def p2(lines: list[str]) -> int:
     stones = str_to_nums(lines[0])
-    return sum([stone_count_after(stone, 25) for stone in stones])
+    return sum([stone_count_after(stone, 75) for stone in stones])
 
 if __name__ == "__main__":
     d = Day(11)
