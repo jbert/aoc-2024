@@ -21,16 +21,16 @@ def p1(lines: list[str]) -> int:
     return len(stones)
 
 
-def stone_count_after(stones: list[int], num_ticks: int) -> int:
+def stone_count_after(stone: int, num_ticks: int) -> int:
     if num_ticks == 0:
-        return len(stones)
-    stones = flatten([stone_blink(stone) for stone in stones])
-    return stone_count_after(stones, num_ticks-1)
+        return 1
+    stones = stone_blink(stone)
+    return sum([stone_count_after(stone, num_ticks-1) for stone in stones])
 
 
 def p2(lines: list[str]) -> int:
     stones = str_to_nums(lines[0])
-    return stone_count_after(stones, 25)
+    return sum([stone_count_after(stone, 25) for stone in stones])
 
 if __name__ == "__main__":
     d = Day(11)
