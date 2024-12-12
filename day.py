@@ -4,15 +4,17 @@ from functools import reduce
 
 
 class Day:
-    def __init__(self, day: int, test=None):
+    def __init__(self, day: int):
         self.day = day
-        if test is None:
-            test = os.getenv('AOC_TEST') == "true"
-        self.test = test
+        self.suffix = ""
+        test = os.getenv('AOC_TEST')
+        if test == "true":
+            self.suffix = "-test"
+        elif test is not None:
+            self.suffix = f'-{test}'
 
     def _data_path(self):
-        suffix = "-test" if self.test else ""
-        return f'data/d{self.day}{suffix}.txt'
+        return f'data/d{self.day}{self.suffix}.txt'
 
     def read_lines(self):
         with open(self._data_path(), "r") as f:
