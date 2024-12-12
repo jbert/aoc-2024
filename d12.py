@@ -1,7 +1,82 @@
-from day import Day
+from day import Day, flatten
 from pt import pt, NESW
 
 def region_sides(m: list[str], r: set[pt]) -> int:
+    v = pt(0,0) in r
+    v = False
+    # Approach:
+    # - decompose into vertical rectangles
+    #   - one or more per x value
+    # - work from left
+    # - first rectangle has 4 edges
+    # - adding new rectangle adds 4 edges
+    # - overlap with rectangles to the left reduces some edges
+    #   - case analysis
+    #
+    xmin = min([p.x for p in r])
+    xmax = max([p.x for p in r])
+    slices = []
+    for x in range(xmin, xmax+1):
+        s = [p for p in r if p.x == x]
+        s.sort(key = lambda p: p.y)
+#        if v:
+#            print(s)
+        slices.append(s)
+
+    def slice_to_rects(s: list[pt]) -> list[list[pt]]:
+        rects = [[s[0]]]
+        for p in s[1:]:
+            if p.y != rects[-1][-1].y + 1:
+                rects.append([])
+            rects[-1].append(p)
+        return rects
+
+    slice_rects = [slice_to_rects(s) for s in slices]
+    num_edges = 4 * len(slice_rects[0])
+    for i, prev_slice in enumerate(slice_rects):
+        if i == len(slice_rects) - 1:
+            break
+        for b in slice_rects[i+1]:
+            if v:
+                print(f'Adding b {b}')
+            num_edges += 4
+            for a in prev_slice:
+                if v:
+                    print(f'Comparing a {a}')
+                #
+                # +4 for the new rect
+                #
+                # but:
+                # A    B  A   AB   B A   B AB A  AB  B
+                # AB  AB  AB  AB  AB A   B AB A  AB  B
+                # AB  AB  AB  AB  AB A  A  A  AB  B AB
+                # A   AB  AB  AB   B  B A  A  AB  B AB
+                #     A    B          B A
+                #
+                # -0  -0  -0  -4  -0 -0 -0 -2 -2 -2 -2
+                #
+                if a[0].y == b[0].y:
+                    if v:
+                        print('-2 edges')
+                    num_edges -= 2
+                if a[-1].y == b[-1].y:
+                    if v:
+                        print('-2 edges')
+                    num_edges -= 2
+#                if a[0].y == b[0].y and a[-1].y == b[-1].y:
+#                    num_edges -= 4
+#                elif a[0].y == b[0].y and a[-1].y != b[-1].y:
+#                    num_edges -= 2
+#                elif a[0].y != b[0].y and a[-1].y == b[-1].y:
+#                    num_edges -= 2
+                if v:
+                    print(num_edges, a, b, "\n")
+
+
+    return num_edges
+
+
+def region_sides_orig(m: list[str], r: set[pt]) -> int:
     peri = region_peri(m, r, True)
     counts: dict[pt,int] = {}
     for p in peri:
@@ -23,9 +98,12 @@ def region_sides(m: list[str], r: set[pt]) -> int:
         edge = [p]
         num_edges += 1
 
-        for dir in NESW:
+        for i, dir in enumerate(NESW):
             q = p.add(dir)
             if q not in counts:
+                continue
+            odir = NESW[(i+1)%4]
+            if not (p.add(odir) in r or p.add(odir.scale(-1)) in r):
                 continue
 
             # We have a dir, go as far as we can
@@ -42,13 +120,12 @@ def region_sides(m: list[str], r: set[pt]) -> int:
                 edge.append(q)
                 q = q.add(dir)
 
-
     return num_edges
 
 def region_score_p2(m: list[str], r: set[pt]) -> int:
     area = len(r)
     sides = region_sides(m, r)
-    print(area, sides)
+#    print(area, sides)
     return area * sides
 
 
@@ -110,6 +187,7 @@ def p1(lines: list[str]) -> int:
 # 1206 right:
 # 817964 too low
 # 816883 too low
+# 824218 wrong
 def p2(lines: list[str]) -> int:
     regions = find_regions(lines)
     return sum([region_score_p2(lines, r) for r in regions])
