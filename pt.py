@@ -45,6 +45,12 @@ class pt(NamedTuple):
     def scale(self, n: int):
         return pt(self.x * n, self.y * n)
 
+    def __repr__(self):
+        return f'[{self.x},{self.y}]'
+
+    def __str__(self):
+        return self.__repr__()
+
 
 def mk_is_adjacent(p: pt) -> Callable[[pt], bool]:
     def f(q: pt) -> bool:
