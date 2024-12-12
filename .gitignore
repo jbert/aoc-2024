@@ -12,3 +12,7 @@ wheels/
 # Editor files
 *~
 .*.swp
+
+# JB tmp files
+tt
+ttt

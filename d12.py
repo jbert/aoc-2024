@@ -2,22 +2,13 @@ from day import Day
 from pt import pt, NESW
 
 def region_sides(m: list[str], r: set[pt]) -> int:
-    v = pt(9,0) in r
-    v = False
-    if v:
-        print(f'region {r}')
     peri = region_peri(m, r, True)
     counts: dict[pt,int] = {}
     for p in peri:
         c = counts.get(p, 0)
         counts[p] = c + 1
-    if v:
-        print(f'counts {counts}')
-        print(f'lc {len(counts)}')
 
     def decr_count(p):
-        if v:
-            print(f'dc {p}')
         c = counts[p]
         c -= 1
         counts[p] = c
@@ -33,45 +24,26 @@ def region_sides(m: list[str], r: set[pt]) -> int:
         num_edges += 1
         for dir in NESW:
             q = p.add(dir)
-            if v:
-                print(f'JB1 consider q {q}')
             if q not in counts:
                 continue
 
-            if v:
-                print(f'dir {dir}')
             while q in counts:
                 decr_count(q)
                 edge.append(q)
                 q = q.add(dir)
-                if v:
-                    print(f'JB3 consider q {q}')
 
             dir = dir.scale(-1)
-            if v:
-                print(f'JB5 - dir {dir}')
             q = p.add(dir)
 
             if q not in counts:
                 continue
 
-            if v:
-                print(f'JB2 consider q {q}')
-            if v:
-                print(f'dir {dir}')
             while q in counts:
                 decr_count(q)
                 edge.append(q)
                 q = q.add(dir)
-                if v:
-                    print(f'JB4 consider q {q}')
             break
 
-        if v:
-            print(f'e {edge}')
-
-    if v:
-        print(f'num_edges {num_edges}')
 
     return num_edges
 
