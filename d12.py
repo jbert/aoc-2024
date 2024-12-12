@@ -76,52 +76,6 @@ def region_sides(m: list[str], r: set[pt]) -> int:
     return num_edges
 
 
-def region_sides_orig(m: list[str], r: set[pt]) -> int:
-    peri = region_peri(m, r, True)
-    counts: dict[pt,int] = {}
-    for p in peri:
-        c = counts.get(p, 0)
-        counts[p] = c + 1
-
-    def decr_count(p):
-        c = counts[p]
-        c -= 1
-        counts[p] = c
-        if c == 0:
-            del counts[p]
-
-    num_edges = 0
-    while len(counts) > 0:
-
-        p = list(counts.keys())[0]
-        decr_count(p)
-        edge = [p]
-        num_edges += 1
-
-        for i, dir in enumerate(NESW):
-            q = p.add(dir)
-            if q not in counts:
-                continue
-            odir = NESW[(i+1)%4]
-            if not (p.add(odir) in r or p.add(odir.scale(-1)) in r):
-                continue
-
-            # We have a dir, go as far as we can
-            while q in counts:
-                q = q.add(dir)
-
-            # Go back one step
-            dir = dir.scale(-1)
-            q = q.add(dir)
-
-            # Remove edge
-            while q != p:
-                decr_count(q)
-                edge.append(q)
-                q = q.add(dir)
-
-    return num_edges
-
 def region_score_p2(m: list[str], r: set[pt]) -> int:
     area = len(r)
     sides = region_sides(m, r)
