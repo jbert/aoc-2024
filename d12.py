@@ -17,32 +17,30 @@ def region_sides(m: list[str], r: set[pt]) -> int:
 
     num_edges = 0
     while len(counts) > 0:
+
         p = list(counts.keys())[0]
         decr_count(p)
-
         edge = [p]
         num_edges += 1
+
         for dir in NESW:
             q = p.add(dir)
             if q not in counts:
                 continue
 
+            # We have a dir, go as far as we can
             while q in counts:
-                decr_count(q)
-                edge.append(q)
                 q = q.add(dir)
 
+            # Go back one step
             dir = dir.scale(-1)
-            q = p.add(dir)
+            q = q.add(dir)
 
-            if q not in counts:
-                continue
-
-            while q in counts:
+            # Remove edge
+            while q != p:
                 decr_count(q)
                 edge.append(q)
                 q = q.add(dir)
-            break
 
 
     return num_edges
@@ -111,6 +109,7 @@ def p1(lines: list[str]) -> int:
 
 # 1206 right:
 # 817964 too low
+# 816883 too low
 def p2(lines: list[str]) -> int:
     regions = find_regions(lines)
     return sum([region_score_p2(lines, r) for r in regions])
