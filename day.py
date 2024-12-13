@@ -131,3 +131,17 @@ def partition(pred: Callable[[T], bool], l: list[T]) -> tuple[list[T], list[T]]:
         else:
             fs.append(x)
     return ts, fs
+
+
+def split_list(pred: Callable[[T], bool], l: list[T]) -> list[list[T]]:
+    chunks = []
+    chunk = []
+    for t in l:
+        if pred(t):
+            chunks.append(chunk)
+            chunk = []
+        else:
+            chunk.append(t)
+
+    chunks.append(chunk)
+    return chunks
