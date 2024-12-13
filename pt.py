@@ -70,3 +70,22 @@ NW = N.add(W)
 SW = S.add(W)
 
 ALL_DIRS = NESW + [NE, SE, SW, NW]
+
+
+# 2x2 matrix
+#  a  b
+#  c  d
+class mat(NamedTuple):
+    a: int
+    b: int
+    c: int
+    d: int
+
+    def times(self, p: pt) -> pt:
+        return pt(self.a * p.x + self.b * p.y, self.c * p.x + self.d * p.y)
+
+    def int_inv(self):
+        return mat(self.d, -self.b, -self.c, self.a)
+
+    def inv_det(self) -> int:
+        return self.a*self.d - self.b*self.c
