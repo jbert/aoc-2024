@@ -10,8 +10,14 @@ class pt(NamedTuple):
     def add(self, o):
         return pt(self.x+o.x, self.y+o.y)
 
+    def __add__(self, b):
+        return self.add(b)
+
     def sub(self, o):
         return pt(self.x-o.x, self.y-o.y)
+
+    def __sub__(self, b):
+        return self.sub(b)
 
     def __eq__(self, o) -> bool:
         return self.x == o.x and self.y == o.y
@@ -29,11 +35,18 @@ class pt(NamedTuple):
     def is_adjacent(self, q) -> bool:
         return q in self.adjacent_pts()
 
+    def trim_within(self, bounds: 'pt') -> 'pt':
+        x = self.x % bounds.x
+        y = self.y % bounds.y
+        return pt(x, y)
+
+    def within_pt(self, bounds: 'pt') -> bool:
+        ret = self.x >= 0 and self.x < bounds.x and self.y >= 0 and self.y < bounds.y
+        return ret
+
     def within(self, m: matrix) -> bool:
         mb = matrix_bounds(m)
-        ret = self.x >= 0 and self.x < mb.x and self.y >= 0 and self.y < mb.y
-#        print(f'within {self} - {mb} - ret {ret}')
-        return ret
+        return self.within_pt(mb)
 
     def char_at(self, m: matrix, sentinel=None) -> str:
         if not self.within(m):
@@ -56,6 +69,12 @@ def mk_is_adjacent(p: pt) -> Callable[[pt], bool]:
     def f(q: pt) -> bool:
         return q.is_adjacent(p)
     return f
+
+
+def pt_parse(s: str) -> pt:
+    # a, b - with optional whitespace
+    bits = s.split(',')
+    return pt(int(bits[0]), int(bits[1]))
 
 
 def matrix_bounds(m: matrix) -> pt:
