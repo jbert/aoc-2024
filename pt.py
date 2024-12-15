@@ -97,6 +97,18 @@ SW = S.add(W)
 ALL_DIRS = NESW + [NE, SE, SW, NW]
 
 
+def move_to_dir(s: str) -> pt:
+    if s == '^':
+        return N
+    elif s == 'v':
+        return S
+    elif s == '>':
+        return E
+    elif s == '<':
+        return W
+    raise RuntimeError(f'Unknown direction symbol [s]')
+
+
 # 2x2 matrix
 #  a  b
 #  c  d
