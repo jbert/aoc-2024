@@ -1,4 +1,4 @@
-from typing import Callable, NamedTuple, TypeVar
+from typing import Callable, NamedTuple, TypeVar, Sequence
 
 matrix = list[str]
 
@@ -80,7 +80,7 @@ def pt_parse(s: str) -> pt:
 T = TypeVar("T")
 
 
-def map_find(m: list[list[T]], needle: T) -> list[pt]:
+def map_find(m: Sequence[Sequence[T]], needle: T) -> list[pt]:
     found = []
     for j, l in enumerate(m):
         for i, c in enumerate(l):

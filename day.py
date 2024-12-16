@@ -124,6 +124,13 @@ def flatten(l: list[list[T]]) -> list[T]:
     return [x for xs in l for x in xs]
 
 
+def flatten_los(ls: list[set[T]]) -> set[T]:
+    total: set[T] = set()
+    for s in ls:
+        total = total.union(s)
+    return total
+
+
 def partition(pred: Callable[[T], bool], l: list[T]) -> tuple[list[T], list[T]]:
     ts = []
     fs = []
