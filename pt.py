@@ -1,4 +1,4 @@
-from typing import Callable, NamedTuple
+from typing import Callable, NamedTuple, TypeVar
 
 matrix = list[str]
 
@@ -75,6 +75,18 @@ def pt_parse(s: str) -> pt:
     # a, b - with optional whitespace
     bits = s.split(',')
     return pt(int(bits[0]), int(bits[1]))
+
+
+T = TypeVar("T")
+
+
+def map_find(m: list[list[T]], needle: T) -> list[pt]:
+    found = []
+    for j, l in enumerate(m):
+        for i, c in enumerate(l):
+            if c == needle:
+                found.append(pt(i, j))
+    return found
 
 
 def matrix_bounds(m: matrix) -> pt:

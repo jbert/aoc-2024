@@ -1,14 +1,5 @@
 from day import Day, split_list, flatten
-from pt import pt, move_to_dir, N, E, S, W
-
-
-def map_find(m: list[list[str]], needle: str) -> list[pt]:
-    found = []
-    for j, l in enumerate(m):
-        for i, c in enumerate(l):
-            if c == needle:
-                found.append(pt(i, j))
-    return found
+from pt import pt, move_to_dir, N, E, S, W, map_find
 
 
 def parse_p2(lines: list[str]) -> tuple[list[list[str]], pt, list[str]]:
