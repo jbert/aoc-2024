@@ -25,14 +25,22 @@ def p2(lines: list[str], arena_exit) -> str:
         return p.sub(q).manhattan_len()
 
     arena_exit = arena_size - pt(1, 1)
-    for p in incoming:
+    spath = set()
+    for i, p in enumerate(incoming):
         m[p.y][p.x] = '#'
 #        print(i+1)
 #        print_map(m)
+        if len(spath) > 0 and p not in spath:
+            continue
+
         path = find_path(pt(0, 0), arena_exit, get_neighbours,
                          heuristic_cost_estimate_fnct=dist, distance_between_fnct=dist)
         if path is None:
             break
+        spath = set(path)
+
+    print(i+1)
+    print_map(m)
     return str(p)
 
 

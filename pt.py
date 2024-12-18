@@ -67,6 +67,18 @@ class pt(NamedTuple):
     def __str__(self):
         return self.__repr__()
 
+    def turn_right(self):
+        i = NESW.index(self)
+        i += 1
+        i %= 4
+        return NESW[i]
+
+    def turn_left(self):
+        i = NESW.index(self)
+        i -= 1
+        i %= 4
+        return NESW[i]
+
 
 def mk_is_adjacent(p: pt) -> Callable[[pt], bool]:
     def f(q: pt) -> bool:
@@ -112,7 +124,19 @@ SW = S.add(W)
 ALL_DIRS = NESW + [NE, SE, SW, NW]
 
 
-def move_to_dir(s: str) -> pt:
+def dir_to_char(p: pt) -> str:
+    if p == N:
+        return '^'
+    elif p == S:
+        return 'v'
+    elif p == E:
+        return '>'
+    elif p == W:
+        return '<'
+    raise RuntimeError(f'Unknown direction [{p}]')
+
+
+def char_to_dir(s: str) -> pt:
     if s == '^':
         return N
     elif s == 'v':
@@ -121,7 +145,7 @@ def move_to_dir(s: str) -> pt:
         return E
     elif s == '<':
         return W
-    raise RuntimeError(f'Unknown direction symbol [s]')
+    raise RuntimeError(f'Unknown direction symbol [{s}]')
 
 
 # 2x2 matrix
