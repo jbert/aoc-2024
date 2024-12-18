@@ -12,6 +12,30 @@ def print_map(m):
         print("".join(row))
 
 
+def p2(lines: list[str], arena_exit) -> str:
+    row = ['.'] * arena_size.x
+    m = [row[:] for _ in range(arena_size.y)]
+    incoming = parse(lines)
+
+    def get_neighbours(p: pt) -> list[pt]:
+        return [p for p in p.adjacent_pts_nesw() if p.within(m)
+                and p.char_at(m) == '.']
+
+    def dist(p: pt, q: pt) -> int:
+        return p.sub(q).manhattan_len()
+
+    arena_exit = arena_size - pt(1, 1)
+    for p in incoming:
+        m[p.y][p.x] = '#'
+#        print(i+1)
+#        print_map(m)
+        path = find_path(pt(0, 0), arena_exit, get_neighbours,
+                         heuristic_cost_estimate_fnct=dist, distance_between_fnct=dist)
+        if path is None:
+            break
+    return str(p)
+
+
 def p1(lines: list[str], arena_exit, sim_max) -> int:
     row = ['.'] * arena_size.x
     m = [row[:] for _ in range(arena_size.y)]
@@ -46,3 +70,4 @@ if __name__ == "__main__":
         sim_max = 12
 
     print(p1(lines, arena_size, sim_max))
+    print(p2(lines, arena_size))

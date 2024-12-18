@@ -29,6 +29,9 @@ class pt(NamedTuple):
     def adjacent_pts_nesw(self):
         return [p.add(self) for p in NESW]
 
+    def manhattan_len(self) -> int:
+        return abs(self.x) + abs(self.y)
+
     def adjacent_pts(self):
         return [p.add(self) for p in ALL_DIRS]
 
