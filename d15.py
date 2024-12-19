@@ -131,7 +131,7 @@ def move_box(m, start, dir):
 
 
 def apply_move_p2(m, robot, move):
-    dir = move_to_dir(move)
+    dir = char_to_dir(move)
     q = robot + dir
     c = q.char_at(m)
 
@@ -157,7 +157,7 @@ def apply_move_p2(m, robot, move):
 
 
 def apply_move(m, robot, move):
-    dir = move_to_dir(move)
+    dir = char_to_dir(move)
     q = robot + dir
     c = q.char_at(m)
 
