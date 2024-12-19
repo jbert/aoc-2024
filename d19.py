@@ -85,6 +85,37 @@ def solve(design, patterns) -> list[str] | None:
     return [design[r.start:r.stop] for r in soln]
 
 
+cache: dict[str, int] = {}
+
+
+def count_covered(dr: range, icovers: list[list[range]]) -> int:
+    k = f'{dr} {icovers}'
+    global cache
+    v = cache.get(k, None)
+    if v is not None:
+        return v
+
+#    print(f'cc {dr} icovers {icovers}')
+    if len(dr) == 0:
+        # print(f'JB0 1')
+        cache[k] = 1
+        return 1
+    if len(icovers) == 0:
+        # print(f'JB1 0')
+        cache[k] = 0
+        return 0
+    zero_ranges: list[range] = icovers[0]
+    total = 0
+    for zr in zero_ranges:
+        # print(f'zr {zr}')
+        n = count_covered(range(zr.stop, dr.stop), icovers[len(zr):])
+        # print(f'JB2 {n}')
+        total += n
+    # print(f'JB3 {total}')
+    cache[k] = total
+    return total
+
+
 def is_covered(dr: range, icovers: list[list[range]]) -> bool:
     #    print(f'ic {dr} icovers {icovers}')
     if len(dr) == 0:
@@ -133,7 +164,23 @@ def p1(lines: list[str]) -> int:
     return possible
 
 
+def p2(lines: list[str]) -> int:
+    global cache
+    patterns, designs = parse(lines)
+    total = 0
+    for d in designs:
+        #    for d in ['ggrggugwgrrrggrruggurggwguuuuubwrurbgrgbwwwuurg']:
+        icovers = calc_icovers(d, patterns)
+        cache = {}
+        n = count_covered(range(len(d)), icovers)
+    #    print(f'd {d} count {n}')
+        if d is not None:
+            total += n
+    return total
+
+
 if __name__ == "__main__":
     d = Day(19)
     lines = d.read_lines()
     print(p1(lines))
+    print(p2(lines))
