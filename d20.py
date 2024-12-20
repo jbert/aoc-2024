@@ -50,6 +50,7 @@ def display_cheat(lines: list[str], cheat):
         print(pline)
 
 
+# 762 - too low
 def p1(lines: list[str]) -> int:
     spaces, walls, start, end = parse(lines)
     path = maze_solve(spaces, start, end)
@@ -58,7 +59,12 @@ def p1(lines: list[str]) -> int:
     normal_picos = len(list(path))
     print(start, end, normal_picos)
     count = 0
-    for poss_cheat in possible_cheats(spaces, walls):
+    num_checked = 0
+    poss_cheats = list(possible_cheats(spaces, walls))
+    lpc = len(poss_cheats)
+    for poss_cheat in poss_cheats:
+        print(f'pc {num_checked}/{lpc} {poss_cheat}')
+        num_checked += 1
 
         spaces.add(poss_cheat[0])
 
@@ -80,13 +86,13 @@ def p1(lines: list[str]) -> int:
         saved_picos = normal_picos - picos
         if saved_picos <= 0:
             continue
-#        print(f'pc {poss_cheat} picos {picos} saved {saved_picos}')
-#        print(f'ptc {ptc}')
-#        print(f'pfc {pfc}')
-#        display_cheat(lines, poss_cheat)
-        if saved_picos > 100:
+        if saved_picos >= 100:
             count += 1
-    return int(count / 2)  # We counted each cheat twice
+#            print(f'pc {poss_cheat} picos {picos} saved {saved_picos}')
+#            print(f'ptc {ptc}')
+#            print(f'pfc {pfc}')
+#            display_cheat(lines, poss_cheat)
+    return count
 
 
 if __name__ == "__main__":
