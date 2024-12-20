@@ -79,6 +79,29 @@ class pt(NamedTuple):
         i %= 4
         return NESW[i]
 
+    def dist_set(self, dist, fill=False, include_self=False):
+        if dist == 0:
+            if include_self:
+                return set(self)
+            else:
+                return set()
+        if dist < 0:
+            raise RuntimeError(f'Negative distance {dist}')
+        ret = set()
+        if include_self:
+            ret.add(self)
+        for d in range(0, dist+1):
+            v1 = pt(d, dist-d)
+            v2 = pt(d-dist, d)
+            ret.add(self+v1)
+            ret.add(self-v1)
+            ret.add(self+v2)
+            ret.add(self-v2)
+        if fill:
+            return ret.union(self.dist_set(dist-1, fill=True, include_self=include_self))
+        else:
+            return ret
+
 
 def mk_is_adjacent(p: pt) -> Callable[[pt], bool]:
     def f(q: pt) -> bool:
