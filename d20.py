@@ -51,23 +51,39 @@ def display_cheat(lines: list[str], cheat):
 
 
 def p1(lines: list[str]) -> int:
-    spaces_orig, walls_orig, start, end = parse(lines)
-    path = maze_solve(spaces_orig, start, end)
+    spaces, walls, start, end = parse(lines)
+    path = maze_solve(spaces, start, end)
     if path is None:
         raise RuntimeError(f'Problem not solvable')
     normal_picos = len(list(path))
-    print(start, end)
+    print(start, end, normal_picos)
     count = 0
-    for poss_cheat in possible_cheats(spaces_orig, walls_orig):
-        spaces = spaces_orig.copy()
-        spaces = spaces.union(poss_cheat)
-        path = maze_solve(spaces, start, end)
-        if path is None:
-            raise RuntimeError(f'Adding spaces broke maze?')
-        picos = len(list(path))
+    for poss_cheat in possible_cheats(spaces, walls):
+
+        spaces.add(poss_cheat[0])
+
+        ptc = maze_solve(spaces, start, poss_cheat[0])
+        if ptc is None:
+            raise RuntimeError(f"can't path to cheat start")
+        ptc = list(ptc)
+
+        pfc = maze_solve(spaces, poss_cheat[1], end)
+        if pfc is None:
+            raise RuntimeError(f"can't path from cheat to end")
+        pfc = list(pfc)
+
+        spaces.remove(poss_cheat[0])
+
+        if len(set(ptc).intersection(set(pfc))) != 0:
+            continue
+        picos = len(ptc) + len(pfc)
         saved_picos = normal_picos - picos
-        print(f'pc {poss_cheat} picos {picos} saved {saved_picos}')
-        display_cheat(lines, poss_cheat)
+        if saved_picos <= 0:
+            continue
+#        print(f'pc {poss_cheat} picos {picos} saved {saved_picos}')
+#        print(f'ptc {ptc}')
+#        print(f'pfc {pfc}')
+#        display_cheat(lines, poss_cheat)
         if saved_picos > 100:
             count += 1
     return int(count / 2)  # We counted each cheat twice
