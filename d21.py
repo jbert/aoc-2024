@@ -1,6 +1,6 @@
 from day import Day
-from pt import pt
-from dataclasses import dataclass
+from pt import pt, char_to_dir
+from itertools import permutations
 
 
 def dirpad_loc(key: str) -> pt:
@@ -19,7 +19,11 @@ def dirpad_loc(key: str) -> pt:
     raise RuntimeError(f'asked for wrong key {key}')
 
 
-def keypad_loc(key: str) -> pt:
+numpad = ["789", "456", "123", "X0A"]
+dirpad = ["X^A", "<v>"]
+
+
+def numpad_loc(key: str) -> pt:
     match(key):
         case '7':
             return pt(0, 0)
@@ -48,7 +52,16 @@ def keypad_loc(key: str) -> pt:
             return pt(2, 3)
     raise RuntimeError(f'asked for wrong key {key}')
 
-# The 'panic squares' are all on the west side, so we go west last
+
+def seqs_to(a: pt, b: pt) -> set[str]:
+    d = b - a
+    h = '>' if d.x > 0 else '<'
+    v = 'v' if d.y > 0 else '^'
+    nv = abs(d.x)
+    nh = abs(d.y)
+    # Need all perms of h and v which have nv v and nh h
+    s = h * nh + v * nv
+    return set(["".join(t) for t in permutations(s)])
 
 
 def seq_to(a: pt, b: pt) -> str:
@@ -63,30 +76,50 @@ def seq_to(a: pt, b: pt) -> str:
     if needed.x < 0:
         seq += '<' * -needed.x
     seq += 'A'
-#    print(f'seq_to {a} -> {b} : {seq}')
+    #    print(f'seq_to {a} -> {b} : {seq}')
     return "".join(seq)
 
 
+def find_padseqs(code: str, loc) -> list[set[str]]:
+    p = loc('A')
+    padseq = []
+    for c in code:
+        q = loc(c)
+        padseq.append(seqs_to(p, q))
+    #        print(f'{old_c}:{c} p {p} q {q} seq {seq}')
+        p = q
+    #    print(f'padseq {code} -> {s}')
+    return padseq
+
+
 def find_padseq(code: str, loc) -> str:
-    old_c = 'A'
     p = loc('A')
     seq = []
     for c in code:
         q = loc(c)
         seq += seq_to(p, q)
-#        print(f'{old_c}:{c} p {p} q {q} seq {seq}')
+    #        print(f'{old_c}:{c} p {p} q {q} seq {seq}')
         p = q
-        old_c = c
     s = "".join(seq)
-#    print(f'padseq {code} -> {s}')
+    #    print(f'padseq {code} -> {s}')
     return s
 
 
+def all_codes(seq: list[set[str]]):
+
+
+def find_seqs(code: str) -> list[set[str]]:
+    seq = find_padseqs(code, numpad_loc)
+    seq = [find_padseq(seq, dirpad_loc) for code in all_codes(seq)]
+    seq = [find_padseq(seq, dirpad_loc) for code in all_codes(seq)]
+    return seq
+
+
 def find_seq(code: str) -> str:
-    seq = find_padseq(code, keypad_loc)
+    seq = find_padseq(code, numpad_loc)
     seq = find_padseq(seq, dirpad_loc)
     seq = find_padseq(seq, dirpad_loc)
-#    seq = find_padseq(seq, dirpad_loc)
+    #    seq = find_padseq(seq, dirpad_loc)
     return seq
 
 
@@ -95,17 +128,41 @@ def num_part(code: str) -> int:
     return int(code)  # Remove leading zero
 
 
-def p1(codes: list[str]) -> int:
-    #    for code in codes:
-    #    for code in ['379A']:
-    #        seq = find_seq(code)
-    #        num = num_part(code)
-    #        print(f'JB {code} -> {len(seq)} * {num}: {seq}')
-    #    return 0
-    sequence = {code: find_seq(code) for code in codes}
-    return sum([num_part(code) * len(sequence[code]) for code in codes])
+def interpret_seq(code: str) -> str:
+    seq = interpret_padseq(code, dirpad, dirpad_loc)
+    seq = interpret_padseq(seq, dirpad, dirpad_loc)
+    seq = interpret_padseq(seq, numpad, numpad_loc)
+    return seq
 
-# 192212 - too high
+
+def interpret_padseq(code, pad, loc) -> str:
+    p = loc('A')
+    pushes = []
+    for c in code:
+        if c == 'A':
+            pushes += p.char_at(pad)
+            continue
+        dir = char_to_dir(c)
+        p += dir
+    s = "".join(pushes)
+    print(f'{code} -> {s}')
+    return s
+
+
+def p1(codes: list[str]) -> int:
+    for code in codes:
+        seq = find_seq(code)
+        check = interpret_seq(seq)
+        if check != code:
+            raise RuntimeError(
+                f"Something's wrong: got {check} expected {code}")
+        num = num_part(code)
+        print(f'JB {code} -> {len(seq)} * {num}: {seq}')
+    return 0
+    #    sequence = {code: find_seq(code) for code in codes}
+    #    return sum([num_part(code) * len(sequence[code]) for code in codes])
+
+    # 192212 - too high
 
 
 if __name__ == "__main__":
