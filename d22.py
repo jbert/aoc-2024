@@ -98,7 +98,8 @@ def fourmap(prices) -> dict[tuple[int, int, int, int], int]:
         if len(l) > 4:
             l = l[1:]
         t = (l[0], l[1], l[2], l[3])
-        fourmap[t] = p
+        if fourmap.get(t, None) is None:
+            fourmap[t] = p
     return fourmap
 
 
@@ -119,6 +120,7 @@ def four_score(fourmaps, fours) -> int:
 
 # 1858 - too low
 # 1881 - too low
+# 1891 - too low
 def p2(lines: list[str]) -> int:
     nums = [int(l) for l in lines]
     upto = 2000
@@ -132,7 +134,7 @@ def p2(lines: list[str]) -> int:
     # upto = 2000
 #    fours = (-2, 1, -1, 3)
 
-    # print(nums)
+    print(nums[0], nums[-1])
     price_lists = [prices(islice(sequence(num), upto)) for num in nums]
 
 #    windows = {sliding_window(deltas(p), 4): i for i, p in enumerate(all_prices)]
@@ -140,18 +142,22 @@ def p2(lines: list[str]) -> int:
     fourmaps = [fourmap(ps) for ps in price_lists]
 #    print(f'Have {len(fourmaps)} fourmaps')
     best = 0
-#    afours = set(list(all_fours()))
-    for i, fs in enumerate(all_fours()):
+#    for i, fs in enumerate(all_fours()):
+    afours = set(list(all_fours()))
+    print(f'Have {len(afours)} afours')
+    for i, fs in enumerate(afours):
         score = four_score(fourmaps, fs)
         if score > best:
             best = score
+            print(f'BEST: i {i} fs {fs}: {score}')
+        if i % 1000 == 0:
             print(f'i {i} fs {fs}: {score}')
     return best
 
 
 def p1(lines: list[str]) -> int:
     nums = [int(l) for l in lines]
-    print(nums)
+    # print(nums)
     for _ in range(2000):
         nums = next_nums(nums)
     #    print(nums)
@@ -161,5 +167,5 @@ def p1(lines: list[str]) -> int:
 if __name__ == "__main__":
     d = Day(22)
     lines = d.read_lines()
-    #    print(p1(lines))
+    print(p1(lines))
     print(p2(lines))
