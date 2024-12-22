@@ -1,6 +1,8 @@
+from sys import intern
 from day import Day
 from pt import pt, char_to_dir
-from itertools import permutations
+from itertools import permutations, chain
+from typing import Generator, Any
 
 
 def dirpad_loc(key: str) -> pt:
@@ -53,74 +55,103 @@ def numpad_loc(key: str) -> pt:
     raise RuntimeError(f'asked for wrong key {key}')
 
 
-def seqs_to(a: pt, b: pt) -> set[str]:
+def seqs_to_raw(a: pt, b: pt) -> set[str]:
     d = b - a
+    dx = pt(d.x, 0)
+    dy = pt(0, d.y)
     h = '>' if d.x > 0 else '<'
     v = 'v' if d.y > 0 else '^'
-    nv = abs(d.x)
-    nh = abs(d.y)
+    nh = abs(d.x)
+    nv = abs(d.y)
     # Need all perms of h and v which have nv v and nh h
     s = h * nh + v * nv
-    return set(["".join(t) for t in permutations(s)])
+#    print(f'd {d} h {h} v {v} s {s}')
+    return set(["".join(t)+'A' for t in permutations(s)])
 
 
-def seq_to(a: pt, b: pt) -> str:
-    needed = b - a
-    seq = []
-    if needed.x > 0:
-        seq += '>' * needed.x
-    if needed.y > 0:
-        seq += 'v' * needed.y
-    if needed.y < 0:
-        seq += '^' * -needed.y
-    if needed.x < 0:
-        seq += '<' * -needed.x
-    seq += 'A'
-    #    print(f'seq_to {a} -> {b} : {seq}')
-    return "".join(seq)
+class BadButton(RuntimeError):
+    pass
 
 
-def find_padseqs(code: str, loc) -> list[set[str]]:
+def is_valid_seq_from(p, seq, pad, loc) -> bool:
+    try:
+        interpret_padseq_from(p, seq, pad, loc)
+        return True
+    except BadButton:
+        return False
+
+
+def seqs_to(a: pt, b: pt, pad, loc):
+    seqs = seqs_to_raw(a, b)
+    return set([seq for seq in seqs if is_valid_seq_from(a, seq, pad, loc)])
+
+
+def find_seqprods(code: str, pad, loc) -> list[set[str]]:
     p = loc('A')
-    padseq = []
+    seqprod = []
+    old_c = 'A'
     for c in code:
         q = loc(c)
-        padseq.append(seqs_to(p, q))
-    #        print(f'{old_c}:{c} p {p} q {q} seq {seq}')
+        if p != q:
+            seqs = [seq for seq in seqs_to(p, q, pad, loc)]
+            seqprod.append(seqs)
+            for seq in seqs:
+                s = interpret_padseq_from(p, seq, pad, loc)
+                if len(s) != 1:
+                    raise RuntimeError(
+                        f'seq {seq} p {p} q {q} should be a single step - got [{s}]')
+                if s[0] != c:
+                    raise RuntimeError(
+                        f'seq {seq} p {p} q {q} should be a step to {c} - got [{s}]')
+#        print(f'{old_c}:{c} p {p} q {q} seq {seqprod}')
         p = q
-    #    print(f'padseq {code} -> {s}')
-    return padseq
+        old_c = c
+#    print(f'seqprod {code} -> {seqprod}')
+    # TODO - remove sort
+    return sorted(seqprod)
 
 
-def find_padseq(code: str, loc) -> str:
-    p = loc('A')
-    seq = []
-    for c in code:
-        q = loc(c)
-        seq += seq_to(p, q)
-    #        print(f'{old_c}:{c} p {p} q {q} seq {seq}')
-        p = q
-    s = "".join(seq)
-    #    print(f'padseq {code} -> {s}')
-    return s
+def expand_seqprod(seqprod: list[set[str]]) -> Generator[str, Any, None]:
+    if len(seqprod) == 0:
+        yield ""
+        return
+    for s in seqprod[0]:
+        for r in expand_seqprod(seqprod[1:]):
+            yield s + r
 
 
-def all_codes(seq: list[set[str]]):
+def all_codes(code, pad, loc):
+    return expand_seqprod(find_seqprods(code, pad, loc))
 
 
-def find_seqs(code: str) -> list[set[str]]:
-    seq = find_padseqs(code, numpad_loc)
-    seq = [find_padseq(seq, dirpad_loc) for code in all_codes(seq)]
-    seq = [find_padseq(seq, dirpad_loc) for code in all_codes(seq)]
-    return seq
+def find_all_seqs(code: str):
+    seqs = all_codes(code, numpad, numpad_loc)
+    seqs = chain.from_iterable(
+        [all_codes(seq, dirpad, dirpad_loc) for seq in seqs])
+    seqs = chain.from_iterable(
+        [all_codes(seq, dirpad, dirpad_loc) for seq in seqs])
+    return seqs
 
 
-def find_seq(code: str) -> str:
-    seq = find_padseq(code, numpad_loc)
-    seq = find_padseq(seq, dirpad_loc)
-    seq = find_padseq(seq, dirpad_loc)
-    #    seq = find_padseq(seq, dirpad_loc)
-    return seq
+def find_shortest_seq(code: str):
+    minlen = 1000 * 1000 * 1000
+    best = ""
+    # TODO -discard those which go to an X
+    num_seqs = 0
+    for seq in find_all_seqs(code):
+        print(f'{num_seqs} : {code} {seq}')
+        num_seqs += 1
+        check_code = interpret_seq(seq)
+        if code != check_code:
+            print(f'{num_seqs} Bad seq {seq}: check {check_code} code {code}')
+            continue
+        print(f'{num_seqs} Good seq {seq}: check {check_code} code {code}')
+#        print(f'seq {seq} len {len(seq)}')
+        ln = len(seq)
+        if ln < minlen:
+            minlen = ln
+            best = seq
+    return best
 
 
 def num_part(code: str) -> int:
@@ -128,41 +159,47 @@ def num_part(code: str) -> int:
     return int(code)  # Remove leading zero
 
 
-def interpret_seq(code: str) -> str:
-    seq = interpret_padseq(code, dirpad, dirpad_loc)
-    seq = interpret_padseq(seq, dirpad, dirpad_loc)
-    seq = interpret_padseq(seq, numpad, numpad_loc)
+def interpret_seq(seq: str) -> str:
+    try:
+        seq = interpret_padseq(seq, dirpad, dirpad_loc)
+        seq = interpret_padseq(seq, dirpad, dirpad_loc)
+        seq = interpret_padseq(seq, numpad, numpad_loc)
+    except BadButton:
+        raise BadButton(f'seq {seq}')
     return seq
 
 
-def interpret_padseq(code, pad, loc) -> str:
-    p = loc('A')
+def interpret_padseq(seq, pad, loc) -> str:
+    return interpret_padseq_from(loc('A'), seq, pad, loc)
+
+
+def interpret_padseq_from(p, seq, pad, loc) -> str:
+    #    print(f'seq {seq} p {p} pad {pad} loc {loc}')
     pushes = []
-    for c in code:
+    for c in seq:
         if c == 'A':
             pushes += p.char_at(pad)
             continue
         dir = char_to_dir(c)
         p += dir
+#        print(f'c {c} p {p} pad {pad} loc {loc}')
+        if p.char_at(pad) == "X":
+            raise BadButton(f'p {p} seq {seq} loc {loc}')
     s = "".join(pushes)
-    print(f'{code} -> {s}')
+#    print(f'{code} -> {s}')
     return s
 
 
+# 192212 - too high
+
 def p1(codes: list[str]) -> int:
-    for code in codes:
-        seq = find_seq(code)
-        check = interpret_seq(seq)
-        if check != code:
-            raise RuntimeError(
-                f"Something's wrong: got {check} expected {code}")
+    #    for code in codes:
+    for code in ['029A']:
+        seq = find_shortest_seq(code)
+        print(f"shortest seq: {seq}")
         num = num_part(code)
         print(f'JB {code} -> {len(seq)} * {num}: {seq}')
     return 0
-    #    sequence = {code: find_seq(code) for code in codes}
-    #    return sum([num_part(code) * len(sequence[code]) for code in codes])
-
-    # 192212 - too high
 
 
 if __name__ == "__main__":
