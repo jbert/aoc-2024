@@ -107,8 +107,7 @@ def find_seqprods(code: str, pad, loc) -> list[set[str]]:
         p = q
         old_c = c
 #    print(f'seqprod {code} -> {seqprod}')
-    # TODO - remove sort
-    return sorted(seqprod)
+    return seqprod
 
 
 def expand_seqprod(seqprod: list[set[str]]) -> Generator[str, Any, None]:

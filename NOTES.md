@@ -1,12 +1,19 @@
 # Python Notes
 
+# Day 23
+
+- you can use | and & operators with sets (not +)
+
+- generators can be fiddly :-)
+
 # Dqy 11
 
 - functools has some memoisation tools
-    - didn't use them though...
+
+  - didn't use them though...
 
 - deep recursion in python isn't a good idea
-    - also no tail call optimisation
+  - also no tail call optimisation
 
 # Day 7
 
