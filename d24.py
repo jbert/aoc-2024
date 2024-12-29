@@ -1,4 +1,4 @@
-from day import Day, split_list
+from day import Day, split_list, flatten
 from collections.abc import Callable
 from collections import defaultdict
 
@@ -40,7 +40,7 @@ def mk_and(wires, a: str, b: str) -> Callable[[], bool]:
 def parse(lines: list[str]):
     bits = split_list(lambda l: l == "", lines)
     wires: dict[str, Callable[[], bool]] = {}
-    depends_on = defaultdict(lambda: set())
+    ins = defaultdict(lambda: set())
     for l in bits[0]:
         wire, bval = l.split(': ')
         b = True if bval == '1' else False
@@ -56,20 +56,20 @@ def parse(lines: list[str]):
         out = lbits[1]
         abits = lbits[0].split(' ')
         a, fname, b = abits
-        depends_on[out].add(a)
-        depends_on[out].add(b)
+        ins[out].add(a)
+        ins[out].add(b)
         wires[out] = mk_funcs[fname](wires, a, b)
 
-    return wires, depends_on
+    return wires, ins
 
 
-def all_depends(depends_on, a):
+def all_ins(ins, a):
     todo = set([a])
     ret = set()
     while len(todo) > 0:
         x = todo.pop()
-        ret |= depends_on[x]
-        todo |= depends_on[x]
+        ret |= ins[x]
+        todo |= ins[x]
     return ret
 
 
@@ -94,12 +94,46 @@ def bools_to_int(bs: list[bool]) -> int:
 # - swap candidates are wires with dependencies on those input bits (including inputs and outputs?)
 # - intersection of all candidates gives answer?
 def p2(lines: list[str]) -> str:
-    wires, depends_on = parse(lines)
-    xs = sorted([w for w in wires.keys() if w[0] == 'x'], reverse=True)
-    ys = sorted([w for w in wires.keys() if w[0] == 'y'], reverse=True)
-    zwires = sorted([w for w in wires.keys() if w[0] == 'z'], reverse=True)
+    wires, direct_deps = parse(lines)
 
-    print(all_depends(depends_on, 'z00'))
+    def get_wires(l, prefix):
+        return sorted([w for w in l if w[0] == prefix], reverse=True)
+
+    xs = get_wires(wires, 'x')
+    ys = get_wires(wires, 'y')
+    zs = get_wires(wires, 'z')
+    zs.reverse()
+    in_max = len(xs)
+
+    ins = defaultdict(lambda: set())
+    outs = defaultdict(lambda: set())
+    for w in wires:
+        all_deps = all_ins(direct_deps, w)
+        ins[w] = all_deps
+        for d in all_deps:
+            outs[d].add(w)
+
+    poss_left = {}
+    poss_right = {}
+    all_missing = set()
+    for i, z in enumerate(zs):
+        upto = min(i, in_max)
+        expected = set(flatten([[f'x{j:02}', f'y{j:02}'] for j in range(upto+1)]))
+        got = set(get_wires(ins[z], 'x')) | set(get_wires(ins[z], 'y'))
+#        print(i, z, upto)
+#        print(expected)
+#        print(got)
+        missing = expected - got
+#        print(missing)
+        all_missing |= missing
+        poss_left[i] = set(flatten([outs[mi] for mi in missing]))
+        poss_right[i] = (ins[z] - set(xs)) - set(ys)
+
+    print(all_missing)
+    for i,(k,v) in enumerate(poss_left.items()):
+        print(k)
+        print(sorted(v))
+        print(sorted(poss_right[i]))
 
     return ""
 
