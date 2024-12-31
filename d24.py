@@ -63,7 +63,7 @@ def parse(lines: list[str]):
     return wires, ins
 
 
-def all_ins(ins, a):
+def find_all_ins(ins, a):
     todo = set([a])
     ret = set()
     while len(todo) > 0:
@@ -91,8 +91,12 @@ def bools_to_int(bs: list[bool]) -> int:
 # So:
 # - loop over z bits, starting with low bits
 # - find first 'additional' or 'missing' input bits
-# - swap candidates are wires with dependencies on those input bits (including inputs and outputs?)
-# - intersection of all candidates gives answer?
+# - so:
+#   - find missing input bits
+#   - follow paths forward from missing bits
+#   - swap candidates are on those paths
+#   - index by missing bit, need to match up with additionals
+#   - find overlap between additionals and missings
 def p2(lines: list[str]) -> str:
     wires, direct_deps = parse(lines)
 
@@ -101,39 +105,105 @@ def p2(lines: list[str]) -> str:
 
     xs = get_wires(wires, 'x')
     ys = get_wires(wires, 'y')
+    in_max = len(xs)
     zs = get_wires(wires, 'z')
     zs.reverse()
-    in_max = len(xs)
+    zs = zs[:in_max+1]
 
-    ins = defaultdict(lambda: set())
-    outs = defaultdict(lambda: set())
+    all_ins = defaultdict(lambda: set())
     for w in wires:
-        all_deps = all_ins(direct_deps, w)
-        ins[w] = all_deps
-        for d in all_deps:
-            outs[d].add(w)
+        all_deps = find_all_ins(direct_deps, w)
+        all_ins[w] = all_deps
 
-    poss_left = {}
-    poss_right = {}
-    all_missing = set()
+    outs = defaultdict(lambda: set())
+    for out, ins in direct_deps.items():
+        for inn in ins:
+            outs[inn].add(out)
+
+    def get_paths_to(w: str) -> list[list[str]]:
+        out = outs[w]
+        if len(out) == 0:
+            return [[w]]
+        ret = []
+        for o in out:
+            paths = get_paths_to(o)
+            for p in paths:
+                ret.append([w] + p)
+        return ret
+
+    def get_paths_from(w: str) -> list[list[str]]:
+        ins = direct_deps[w]
+        if len(ins) == 0:
+            return [[w]]
+        ret = []
+        for i in ins:
+            paths = get_paths_from(i)
+            for p in paths:
+                ret.append(p + [w])
+        return ret
+
+    missing = [set() for _ in range(len(zs))]
+    additional = [set() for _ in range(len(zs))]
     for i, z in enumerate(zs):
-        upto = min(i, in_max)
-        expected = set(flatten([[f'x{j:02}', f'y{j:02}'] for j in range(upto+1)]))
-        got = set(get_wires(ins[z], 'x')) | set(get_wires(ins[z], 'y'))
-#        print(i, z, upto)
-#        print(expected)
-#        print(got)
-        missing = expected - got
-#        print(missing)
-        all_missing |= missing
-        poss_left[i] = set(flatten([outs[mi] for mi in missing]))
-        poss_right[i] = (ins[z] - set(xs)) - set(ys)
+        expected = set(flatten([[f'x{j:02}', f'y{j:02}'] for j in range(i+1)]))
+        got = set(get_wires(all_ins[z], 'x')) | set(get_wires(all_ins[z], 'y'))
 
-    print(all_missing)
-    for i,(k,v) in enumerate(poss_left.items()):
-        print(k)
-        print(sorted(v))
-        print(sorted(poss_right[i]))
+        missing[i] = expected - got
+        additional[i] = got - expected
+        print(f'{z}: missing {missing} additional {additional}')
+
+    def find_missing():
+        for i, z in enumerate(zs):
+            expected = set(
+                flatten([[f'x{j:02}', f'y{j:02}'] for j in range(i+1)]))
+            got = set(get_wires(all_ins[z], 'x')) | set(
+                get_wires(all_ins[z], 'y'))
+
+            missing = expected - got
+            if len(missing) > 0:
+                return sorted(list(missing))[0]
+        return None
+
+    def find_additional(xy):
+        for i, z in enumerate(zs):
+            expected = set(
+                flatten([[f'x{j:02}', f'y{j:02}'] for j in range(i+1)]))
+            got = set(get_wires(all_ins[z], 'x')) | set(
+                get_wires(all_ins[z], 'y'))
+
+            additional = got - expected
+            if xy in additional:
+                return z
+        return None
+
+    def find_join(p1, p2):
+        for p in p1:
+            if p in p2:
+                return p
+        return None
+
+    def find_swap():
+        xy_missing = find_missing()
+        print(f'xym {xy_missing}')
+        if xy_missing is None:
+            return None
+
+        z_additional = find_additional(xy_missing)
+        if z_additional is None:
+            raise RuntimeError(
+                f'{xy_missing} missing but not additional anywhere')
+
+        paths_from = get_paths_from(xy_missing)
+        paths_to = get_paths_to(z_additional)
+
+        for pf in paths_from:
+            for pt in paths_to:
+                join = find_join(pf, pt)
+                if join is not None:
+                    print(f'join {join} pf {pf} pt {pt}')
+        return None
+
+    find_swap()
 
     return ""
 
