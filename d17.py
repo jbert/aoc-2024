@@ -1,6 +1,7 @@
 from day import Day, split_list, str_to_nums, flatten
 from dataclasses import dataclass
-from typing import NamedTuple, Optional
+from typing import NamedTuple
+from copy import deepcopy
 
 
 @dataclass
@@ -133,122 +134,28 @@ def parse(lines: list[str]) -> tuple[machine, list[op]]:
     return m, ops
 
 
-# Program:
-# Program: 2,4,1,5,7,5,1,6,0,3,4,2,5,5,3,0
-# 2,4 1,5 7,5 1,6 0,3 4,2 5,5 3,0
-#
-# A = Sum(ak * 8^k), k=0,n
-#
-# bst A     ; B = A % 8
-# B = a0
-# bxl 5     ; B = B XOR 5 (101)
-# B = a0 XOR 5
-# cdv B     ; C = A >> B
-# C = high bits of A shifted down 0-7
-# bxl 6     ; B = B XOR 6 (110)
-# B = a0 XOR 3
-# adv 3     ; A /= 8
-# A = Sum(a(k+1) * 8^k), k=0,n-1
-# bxc       ; B = B XOR C
-# B = a0 XOR 3 XOR high bits of A shifted down 0-7
-# out B     ; out B % 8
-# jnz 0
-
-# Shifting down 0-7 bits means we need only vary 3 octal digits to guess each digit
-
-
-# ops are:
-# - A = A shift right 0-7 bits
-# - B = A shift right 0-7 bits
-# - C = A shift right 0-7 bits
-# - B = B XOR 0..7
-# - B = B XOR C
-# - B = x mod 8
-
-trio = tuple[int, int, int]
-
-
-def all_trios():
-    for a in range(1, 10):
-        for b in range(1, 10):
-            for c in range(1, 10):
-                yield (a, b, c)
-
-
-def find_options(digit, w, wanted, lines) -> set[trio]:
-
-    def matches(trio) -> bool:
-        m, ops = parse(lines)
-        a = [1] * len(wanted)
-        a[digit-2] = trio[0]
-        a[digit-1] = trio[1]
-        a[digit-0] = trio[2]
-#        print(f'a {a}')
-        m.A = int("".join([str(dig) for dig in a]))
-#        print(f'm.A {m.A}')
-        out = m.execute(ops)
-#        print(f'out {out}')
-#        print(f'wan {wanted}')
-#        print(f'digit {digit} w {w}')
-        return out[digit] == w
-
-    return set(filter(matches, all_trios()))
-
-
-def options_match(a: trio, b: trio) -> bool:
-    return a[1] == b[0] and a[2] == b[1]
-
-
-def filter_option_pair(aos: set[trio], bos: set[trio]) -> tuple[set[trio], set[trio]]:
-    if len(aos) == 0 or len(bos) == 0:
-        raise RuntimeError(f'zero input')
-    reta = set()
-    retb = set()
-    for ao in aos:
-        for bo in bos:
-            if options_match(ao, bo):
-                reta.add(ao)
-                retb.add(bo)
-    return reta, retb
-
-
-def collapse_options(all_options: list[set[trio]]) -> list[trio]:
-    print(f'all_options {all_options}')
-    for i, bos in enumerate(all_options):
-        if i == 0:
-            continue
-        aos = all_options[i-1]
-        print(f'i {i} before AOS {aos} BOS {bos}')
-        aos, bos = filter_option_pair(aos, bos)
-        print(f'i {i} after AOS {aos} BOS {bos}')
-        all_options[i-1] = aos
-        all_options[i] = bos
-    ret = []
-    for i, bos in enumerate(all_options):
-        if len(bos) != 1:
-            raise RuntimeError(f'i {i} bos {bos} - not just one option')
-        bo = bos.pop()
-        ret.append(bo)
-
-    return ret
+def eval(m_orig: machine, ops: list[op], a: int, pad_to: int):
+    m = deepcopy(m_orig)
+    m.A = a
+    out = m.execute(ops)
+    pad = pad_to - len(out)
+    return [0] * pad + out
 
 
 def p2(lines: list[str]) -> list[int]:
-    _, ops = parse(lines)
-    wanted = flatten(ops)
+    m, ops = parse(lines)
+    wanted = flatten([[op.instruction, op.operand] for op in ops])
+
+    l = len(wanted)
+    digit = l - 3
+    for os in range(8*8*8):   # 3 octal digits worth of range
+        a = os * pow(8, digit)
+        got = eval(m, ops, a, l)
+        print(f'{oct(a):10} {got}')
+#        print(f'len(got) {len(got)}')
 
     print(f'len(wanted) {len(wanted)} wanted {wanted}')
-    all_options: list[set[trio]] = []
-    for digit, w in enumerate(wanted):
-        # We can examine all 3-digit octal sequences to find the ones which give us the digit in this position
-        # For each position, we can find a set of (i,j,k) tuples which give us the digit
-        # We can then start at one end and intersect the two overlapping digits to reduce options
-        print(f'digit {digit} w {w}')
-        all_options.append(find_options(digit, w, wanted, lines))
-    print('========= got options ============')
-    ret = collapse_options(all_options)
-    print(ret)
-    return ret
+    return []
 
 
 def p1(lines: list[str]) -> list[int]:
