@@ -4,7 +4,7 @@ from collections import defaultdict
 
 
 def get_wire(wires: dict[str, Callable[[], bool]], wire: str) -> bool:
-    #    print(f'gw {wire}')
+    print(f'gw {wire}')
     v = wires[wire]()
     return v
 
@@ -106,6 +106,7 @@ def is_adder(wires, xs, ys) -> bool:
         # print(xyoverrides)
         z = eval_wires(wires, overrides=xyoverrides)
         # print(z)
+        print(f'x {x} y {y} z {z}')
         if z != x + y:
             return False
     return True
@@ -138,6 +139,7 @@ def p2(lines: list[str]) -> str:
     wires, direct_deps = parse(lines)
 
     xs = get_wires(wires, 'x')
+    in_max = len(xs)
     ys = get_wires(wires, 'y')
     zs = get_wires(wires, 'z')
 
@@ -146,13 +148,43 @@ def p2(lines: list[str]) -> str:
         all_deps = find_all_ins(direct_deps, w)
         all_ins[w] = all_deps
 
-    swappable = set(wires.keys()) - set(xs) - set(ys) - set(zs)
+    outs = defaultdict(lambda: set())
+    for out, ins in direct_deps.items():
+        for inn in ins:
+            outs[inn].add(out)
 
-    def find_pairs(ps: set[str]):
-        todo = ps.copy()
+    def get_paths_from(w: str) -> list[list[str]]:
+        out = outs[w]
+        if len(out) == 0:
+            return [[w]]
+        ret = []
+        for o in out:
+            paths = get_paths_from(o)
+            for p in paths:
+                ret.append([w] + p)
+        return ret
+
+    missing = set()
+    for i, z in enumerate(zs[:in_max]):
+        expected = set(flatten([[f'x{j:02}', f'y{j:02}'] for j in range(i+1)]))
+        got = set(get_wires(all_ins[z], 'x')) | set(get_wires(all_ins[z], 'y'))
+
+        missing |= expected - got
+#        print(f'{z}: missing {missing}')
+
+    print(f'missing {missing}')
+    pf = set(flatten(flatten([get_paths_from(xy) for xy in missing])))
+    print(f'paths_from(missing) {pf}')
+    swappable_a = pf - set(xs) - set(ys) - set(zs)
+    print(f'swappable_a {swappable_a}')
+    swappable_b = set(wires.keys()) - set(xs) - set(ys) - swappable_a
+    print(f'swappable_b {swappable_b}')
+
+    def find_pairs(aset: set[str], bset: set[str]):
+        todo = aset.copy()
         while len(todo) > 0:
             a = todo.pop()
-            for b in ps - all_ins[a]:
+            for b in bset - all_ins[a]:
                 if a != b and a not in all_ins[b]:
                     yield (a, b)
 
@@ -161,26 +193,29 @@ def p2(lines: list[str]) -> str:
     def subtract_ins(ps, t):
         return ps - set(t) - set(all_ins[t[0]]) - set(all_ins[t[1]])
 
-    for p1 in find_pairs(swappable):
-        pool2 = subtract_ins(swappable, p1)
-        for p2 in find_pairs(pool2):
+    for p1 in find_pairs(swappable_a, swappable_b):
+        print('p1 {p1}')
+        pool2 = subtract_ins(swappable_a, p1)
+        for p2 in find_pairs(pool2, swappable_b):
+            print('p2 {p2}')
             pool3 = subtract_ins(pool2, p2)
-            for p3 in find_pairs(pool3):
+            for p3 in find_pairs(pool3, swappable_b):
+                print('p3 {p3}')
                 pool4 = subtract_ins(pool3, p3)
-                for p4 in find_pairs(pool4):
+                for p4 in find_pairs(pool4, swappable_b):
+                    print('p4 {p4}')
                     swaps = [p1, p2, p3, p4]
-                    if count % 1000 == 0:
-                        print(
-                            f'{count}: {swaps} {len(swappable)} {len(pool2)} {len(pool3)} {len(pool4)} ')
+#                    if count % 10_000 == 0:
+                    print(
+                        f'JB {count}: {swaps} {len(swappable_a)} {len(swappable_b)} {len(pool2)} {len(pool3)} {len(pool4)} ')
                     do_swaps(wires, swaps)
                     if is_adder(wires, xs, ys):
+                        print(f'found it!')
                         return ",".join(sorted(flatten([list(t) for t in swaps])))
                     do_swaps(wires, swaps)
                     count += 1
 
-    print(is_adder(wires, xs, ys))
-
-    return ""
+    return "not found"
 
 
 def do_swaps(wires, swaps: list[tuple[str, str]]):

@@ -147,12 +147,20 @@ def p2(lines: list[str]) -> list[int]:
     wanted = flatten([[op.instruction, op.operand] for op in ops])
 
     l = len(wanted)
-    digit = l - 3
-    for os in range(8*8*8):   # 3 octal digits worth of range
-        a = os * pow(8, digit)
+#    digit = l - 3
+    digit = 4
+    for os in range(8*8*8*8*8):   # 3 octal digits worth of range
+        a = pow(8, l)
+        a += 1 * pow(8, 0)
+        a += 1 * pow(8, 1)
+        a += 4 * pow(8, 2)
+        a += 7 * pow(8, 3)
+        a += 3 * pow(8, 4)
+        a += os * pow(8, digit)
         got = eval(m, ops, a, l)
-        print(f'{oct(a):10} {got}')
-#        print(f'len(got) {len(got)}')
+        s = oct(a)[2:]
+        print(f'{s:0>16} {got}')
+        print(f'len(got) {len(got)}')
 
     print(f'len(wanted) {len(wanted)} wanted {wanted}')
     return []
